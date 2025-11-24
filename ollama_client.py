@@ -288,13 +288,18 @@ class OllamaClient:
 
         Generate {num_questions} multiple choice questions that test understanding of key concepts.
 
+        IMPORTANT RULES:
+        - Each question must have EXACTLY 4 options labeled A, B, C, D
+        - No more than 4 options per question
+        - No additional options beyond D
+
         For each question, provide:
         1. A clear question
-        2. Four options (A, B, C, D)
-        3. The correct answer
+        2. EXACTLY four options (A, B, C, D) - NO MORE
+        3. The correct answer (must be A, B, C, or D)
         4. A brief explanation
 
-        Format each question exactly as:
+        Format each question EXACTLY as shown below:
         QUESTION: [question text]
         A) [option A]
         B) [option B]
@@ -320,47 +325,84 @@ class OllamaClient:
         return questions[:num_questions]  # Ensure we return exactly num_questions
     
     def _parse_mcq_response(self, response: str) -> List[Dict]:
-        """Parse MCQ response text into structured format"""
+        """Parse MCQ response text into structured format - optimized for actual LLM output"""
         
         questions = []
         
-        # Split by question delimiter
-        question_blocks = response.split('---')
+        # Split by question markers - handle both numbered and unnumbered formats
+        question_blocks = re.split(r'\*\*Question \d+\*\*|\n\n(?=\*\*Question)', response)
         
         for block in question_blocks:
-            if not block.strip():
+            if not block.strip() or len(block.strip()) < 20:
                 continue
             
-            # Extract components using regex
-            question_match = re.search(r'QUESTION:\s*(.+?)(?=\n[A-D]\))', block, re.DOTALL)
-            
-            options_matches = re.findall(r'([A-D])\)\s*(.+?)(?=\n[A-D]\)|CORRECT:|$)', block, re.DOTALL)
-            
-            correct_match = re.search(r'CORRECT:\s*([A-D])', block)
-            explanation_match = re.search(r'EXPLANATION:\s*(.+?)(?=QUESTION:|---|\Z)', block, re.DOTALL)
-            
-            if question_match and options_matches and correct_match:
+            try:
+                # Extract question text - look for text before option A
+                # Pattern: Everything before "A)" is the question
+                question_match = re.search(r'^(.+?)(?=\n\s*A\))', block, re.DOTALL)
+                if not question_match:
+                    continue
+                
                 question_text = question_match.group(1).strip()
+                # Remove any leading "What is..." formatting artifacts
+                question_text = re.sub(r'^\s*\n+', '', question_text)
                 
-                options = [f"{letter}) {text.strip()}" for letter, text in options_matches]
+                # Extract options A, B, C, D
+                # Pattern: Letter) followed by text until next letter or CORRECT
+                options_dict = {}
+                for letter in ['A', 'B', 'C', 'D']:
+                    pattern = rf'{letter}\)\s*(.+?)(?=\n\s*[A-D]\)|\n\s*CORRECT:|\Z)'
+                    opt_match = re.search(pattern, block, re.DOTALL)
+                    if opt_match:
+                        option_text = opt_match.group(1).strip()
+                        # Clean up any extra whitespace or newlines
+                        option_text = ' '.join(option_text.split())
+                        options_dict[letter] = option_text
                 
-                correct_letter = correct_match.group(1)
-                correct_answer = next(
-                    (opt for opt in options if opt.startswith(correct_letter)),
-                    options[0]  # Fallback
-                )
+                # Verify we have exactly 4 options
+                if len(options_dict) != 4:
+                    continue
                 
-                explanation = explanation_match.group(1).strip() if explanation_match else "No explanation provided."
+                # Build options list
+                options = [
+                    f"A) {options_dict['A']}",
+                    f"B) {options_dict['B']}",
+                    f"C) {options_dict['C']}",
+                    f"D) {options_dict['D']}"
+                ]
                 
+                # Extract correct answer
+                correct_match = re.search(r'CORRECT:\s*([A-D])', block)
+                if not correct_match:
+                    continue
+                
+                correct_letter = correct_match.group(1).upper()
+                correct_answer = f"{correct_letter}) {options_dict[correct_letter]}"
+                
+                # Extract explanation
+                explanation_match = re.search(r'EXPLANATION:\s*(.+?)(?=\*\*Question|\Z)', block, re.DOTALL)
+                explanation = "No explanation provided."
+                if explanation_match:
+                    explanation = explanation_match.group(1).strip()
+                    # Clean up extra whitespace
+                    explanation = ' '.join(explanation.split())
+                
+                # Build question object
                 questions.append({
                     "question": question_text,
                     "options": options,
                     "correct_answer": correct_answer,
                     "explanation": explanation
                 })
+                
+            except Exception as e:
+                # Skip malformed questions but log the error
+                print(f"Warning: Failed to parse question block: {str(e)}")
+                continue
         
-        # If parsing failed, generate fallback questions
+        # If parsing failed completely, return fallback
         if not questions:
+            print("WARNING: No questions parsed from LLM response. Using fallback.")
             questions = self._generate_fallback_questions()
         
         return questions

@@ -120,9 +120,13 @@ def get_mcq_generation_prompt():
 
    1. Test understanding, not memorization
    2. Cover key concepts from the material
-   3. Include plausible distractors (wrong answers that seem correct)
-   4. Have clear, unambiguous correct answers
-   5. Provide explanations that reinforce learning
+   3. Have EXACTLY 4 options (A, B, C, D) - NO MORE, NO LESS
+   4. Include plausible distractors (wrong answers that seem correct)
+   5. Have clear, unambiguous correct answers
+   6. Provide explanations that reinforce learning
+
+   CRITICAL RULE: Each question MUST have exactly 4 options labeled A, B, C, D.
+   DO NOT create options E, F, G, or beyond D.
 
    Question Design Principles:
    - Questions should assess comprehension and application
@@ -133,7 +137,7 @@ def get_mcq_generation_prompt():
 
    Format Requirements:
    - Clear, concise question stems
-   - Four options labeled A, B, C, D
+   - Four options labeled A, B, C, D ONLY
    - One definitively correct answer
    - Brief but informative explanation
 
