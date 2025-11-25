@@ -48,7 +48,7 @@ curl http://localhost:11434/api/tags
 Place all files in the same directory:
 ```
 study-buddy/
-├── study_buddy.py
+├── streamlit_app.py
 ├── ollama_client.py
 ├── prompts.py
 ├── pdf_processor.py
@@ -84,7 +84,7 @@ The Ollama service should be running on `http://localhost:11434`
 
 ### 2. Start Streamlit
 ```bash
-streamlit run study_buddy.py
+streamlit run streamlit_app.py
 ```
 
 ### 3. Access the Application

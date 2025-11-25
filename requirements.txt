@@ -1,6 +1,9 @@
-# Python dependencies for StudyBuddy Streamlit Application
-
+# Core dependencies
 streamlit>=1.28.0
 httpx>=0.24.0
 PyPDF2>=3.0.0
 python-dotenv>=1.0.0
+
+# LLM providers
+anthropic>=0.18.0
+google-genai>=0.1.0

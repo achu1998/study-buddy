@@ -1,11 +1,22 @@
-# Ollama Client for local LLM integration
-# Handles all interactions with the Ollama API
+# LLM Client supporting local Ollama and Anthropic Claude
+# Automatically switches based on config.py settings
 
 import httpx
-import asyncio
 import json
 import re
+import os
 from typing import List, Dict, Tuple
+from anthropic import Anthropic
+from google import genai
+from config import DEPLOYMENT_MODE, LLM_PROVIDER
+
+if DEPLOYMENT_MODE == "local":
+    from config import OLLAMA_BASE_URL, OLLAMA_MODEL
+else:
+    OLLAMA_BASE_URL = None
+    OLLAMA_MODEL = None
+    from config import API_KEY, MODEL_NAME
+
 from prompts import (
     STUDY_BUDDY_SYSTEM_PROMPT,
     get_tier_selection_prompt,
@@ -14,15 +25,118 @@ from prompts import (
 )
 
 class OllamaClient:
-    """Client for interacting with local Ollama models"""
+    """Client for interacting with local Ollama or Anthropic Claude models"""
     
-    def __init__(self, base_url: str = "http://localhost:11434", model: str = "llama3.1:8b"):
-        self.base_url = base_url
-        self.model = model
+    def __init__(self):
+        """
+        Initialize LLM client based on config.py settings
+        Automatically detects deployment mode and uses appropriate provider
+        """
+        # Import config here to avoid circular imports
+        
+        self.deployment_mode = DEPLOYMENT_MODE
         self.timeout = 600.0  # 10 minutes for longer responses
+        self.provider = LLM_PROVIDER
+        
+        if self.deployment_mode == "cloud":
+            # Cloud deployment - use Anthropic
+            self.api_key = API_KEY
+            
+            if not self.api_key:
+                raise ValueError("API_KEY is required for cloud deployment. Check your .env file.")
+            
+            # Import Anthropic client
+            try:
+                if self.provider == "anthropic":
+                    self.anthropic_client = Anthropic(api_key=self.api_key)
+                if self.provider == "gemini":
+                    self.gemini_client = genai.Client(api_key=self.api_key)
+            except ImportError:
+                raise ImportError("anthropic package not found. Run: pip install anthropic")
+            
+            self.model = MODEL_NAME
+                
+            print(f"🌐 Using model: {self.model}")
+            
+        else:
+            # Local deployment - use Ollama
+            self.base_url = OLLAMA_BASE_URL
+            self.model = OLLAMA_MODEL
+            
+            print(f"💻 Using local Ollama: {self.model}")
     
     def _make_request(self, prompt: str, system: str, temperature: float = 0.3, 
                      max_tokens: int = 500) -> str:
+        """Make request to either Ollama or Anthropic based on deployment mode"""
+        
+        if self.provider == "ollama":
+            return self._make_ollama_request(prompt, system, temperature, max_tokens)
+        elif self.provider == "anthropic":
+            return self._make_anthropic_request(prompt, system, temperature, max_tokens)
+        else:
+            return self._make_gemini_request(prompt, system, temperature, max_tokens)
+            
+    
+    def _make_anthropic_request(self, prompt: str, system: str, temperature: float, 
+                               max_tokens: int) -> str:
+        """Make request to Anthropic Claude API"""
+        
+        try:
+            message = self.anthropic_client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                system=system,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            )
+            
+            # Extract text from response
+            return message.content[0].text
+            
+        except Exception as e:
+            raise Exception(f"Error communicating with Anthropic: {str(e)}")
+        
+    
+
+    def _make_gemini_request(self, prompt: str, system: str, temperature: float,
+                        max_tokens: int) -> str:
+        """Make request to Google Gemini API using google.genai Client"""
+        
+        try:
+            print("Sending request to Gemini...")
+            
+            # Combine system instruction with user prompt
+            # Gemini's client.models.generate_content expects a single content string
+            full_prompt = f"{system}\n\nUser: {prompt}"
+            
+            # Generate content using the new API
+            response = self.gemini_client.models.generate_content(
+                model=self.model,
+                contents=full_prompt,
+                config={
+                    "temperature": temperature,
+                    "max_output_tokens": max_tokens
+                }
+            )
+            
+            print("Response received from Gemini!")
+            
+            # Extract text from response
+            return response.text
+            
+        except Exception as e:
+            print(f"Gemini error details: {str(e)}")
+            raise Exception(f"Error communicating with Gemini: {str(e)}")
+
+
+    
+    def _make_ollama_request(self, prompt: str, system: str, temperature: float, 
+                            max_tokens: int) -> str:
         """Make synchronous request to Ollama API"""
         
         payload = {
