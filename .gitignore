@@ -2,3 +2,4 @@ study-buddy
 .DS_Store
 __pycache__
 .env
+study_buddy.db
