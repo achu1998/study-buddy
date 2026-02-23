@@ -1,292 +1,102 @@
 # StudyBuddy - Local AI Learning Assistant
 
-A Streamlit-based AI tutor that guides students through Socratic questioning and scaffolding, with PDF processing, summarization, and MCQ generation capabilities.
+**StudyBuddy** is a Streamlit-based AI tutor designed to guide students through course materials using Socratic questioning and scaffolding. By leveraging local LLMs, it ensures that all PDF processing, summarization, and quiz generation happen entirely on your machine.
 
-## Features
+---
 
-- 📚 **PDF Upload & Processing**: Extract text from course materials
-- 📝 **Intelligent Summarization**: Generate concise summaries of uploaded content
-- ❓ **MCQ Generation**: Create practice tests from course materials
-- 💬 **Socratic Chat Interface**: Get guided learning support through 5-tier response system
-- 🗄️ **Conversation History**: All chats are persisted in SQLite database
-- 📥 **Session Export**: Download conversation history in JSON format
-- 🎯 **Learning Tiers**: Adaptive guidance from clarification to resource pointers
+## 🚀 Key Features
+* **Socratic Tutoring:** Instead of giving direct answers, the AI guides you through complex concepts using tiered questioning.
+* **Privacy-First:** Process PDFs locally via Ollama; no data ever leaves your device.
+* **Automated Summarization:** Generate concise breakdowns of long lecture notes or textbooks.
+* **Interactive MCQs:** Create custom practice tests based on your uploaded content with instant feedback.
+* **Session History:** All learning progress is persisted in a local SQLite database.
 
-## Architecture
+---
 
-### Response Tier System
-1. **Tier 1 (Clarification)**: Define terminology and concepts
-2. **Tier 2 (Scaffolding)**: Break down problems into components
-3. **Tier 3 (Skeleton Code)**: Provide structure with TODOs
-4. **Tier 4 (Process Hints)**: Describe methodology without implementation
-5. **Tier 5 (Resource Pointers)**: Suggest concepts and resources
+## 🛠 Prerequisites
 
-## Prerequisites
+Ensure your system meets the following requirements:
+* **Python:** 3.8 or higher.
+* **Ollama:** Installed and running (for local LLM inference).
+* **Hardware:** * 8GB RAM minimum.
+    * 16GB RAM recommended.
 
-### 1. Install Ollama
-Download and install Ollama from [ollama.com](https://ollama.com)
+### Recommended Models
+Choose a model based on your hardware capabilities:
 
-### 2. Pull a Model
 ```bash
-# Recommended models:
-ollama pull llama2:13b        # Best balance (7.3GB)
-ollama pull mistral:7b        # Faster, smaller (4.1GB)
-ollama pull deepseek-r1:7b    # Best for STEM (4.7GB)
+ollama pull llama2:13b        # Best balance of logic and speed (7.3GB)
+ollama pull mistral:7b        # Faster, smaller footprint (4.1GB)
+ollama pull deepseek-r1:7b    # Optimized for STEM and reasoning (4.7GB)
 ```
 
-### 3. Verify Ollama is Running
-```bash
-# Check if Ollama is running
-curl http://localhost:11434/api/tags
+> **Note:** Verify Ollama is active by visiting `http://localhost:11434/api/tags` in your browser.
 
-# Expected response: JSON with available models
-```
+---
 
-## Installation
+## ⚙️ Setup Instructions
 
-### 1. Clone/Download Files
-Place all files in the same directory:
-```
-study-buddy/
-├── streamlit_app.py
-├── ollama_client.py
-├── prompts.py
-├── pdf_processor.py
-├── database.py
-├── requirements.txt
-└── README.md
-```
+Follow these steps to set up the project environment:
 
-### 2. Create Virtual Environment (Recommended)
-```bash
-# Create virtual environment
-python3 -m venv study-buddy
+1.  **Clone the repository:**
+    ```bash
+    git clone <your-repo-url>
+    cd study-buddy
+    ```
 
-# Activate on Windows
-study-buddy\Scripts\activate
+2.  **Create a virtual environment:**
+    ```bash
+    # On macOS/Linux:
+    python3 -m venv study-buddy
+    source study-buddy/bin/activate
 
-# Activate on macOS/Linux
-source study-buddy/bin/activate
+    # On Windows:
+    python -m venv study-buddy
+    study-buddy\Scripts\activate
+    ```
 
-# Deactivate
-deactivate
-```
+3.  **Install Python dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+4.  **Run the Application:**
+    Ensure Ollama is running in the background, then start the interface:
+    ```bash
+    streamlit run streamlit_app.py
+    ```
 
-## Running the Application
+---
 
-### 1. Ensure Ollama is Running
-The Ollama service should be running on `http://localhost:11434`
+## 📖 How to Use
 
-### 2. Start Streamlit
-```bash
-streamlit run streamlit_app.py
-```
+### 1. Upload & Process
+Visit `http://localhost:8501` in your browser. Use the sidebar to click **"Browse files"** and upload your course PDF. The system will extract the text automatically.
 
-### 3. Access the Application
-- The app will open automatically in your browser
-- Default URL: `http://localhost:8501`
+### 2. Learning Modules
+* **Socratic Chat:** Type questions in the **Chat** tab. The AI will guide you through tiers of learning—from basic clarification to deep resource pointers.
+* **Summarization:** Click **"📝 Summarize"** to generate a high-level overview of your materials in the **Summary** tab.
+* **Practice Tests:** Click **"❓ Generate MCQ"** to create a custom test. Head to the **MCQ Test** tab to answer questions and view explanations.
 
-## Usage Guide
+---
 
-### Chat Interface
-1. Navigate to the **Chat** tab
-2. Type your question in the input box
-3. StudyBuddy will respond with guidance (not direct answers)
-4. Continue the conversation to deepen understanding
+## 🔧 Troubleshooting
 
-### PDF Upload & Summarization
-1. Click "Browse files" in the sidebar
-2. Upload a PDF of your course material
-3. Click "📝 Summarize" to generate a summary
-4. View the summary in the **Summary** tab
+| Issue | Solution |
+| :--- | :--- |
+| **"Cannot connect to Ollama"** | Ensure the Ollama service is running locally on port `11434`. |
+| **"Request timed out"** | The model may be too heavy for your RAM. Try a smaller model like `mistral:7b`. |
+| **"Error extracting text"** | Ensure the PDF is not password-protected and contains selectable text (not scanned images). |
+| **Database Errors** | Reset session history by deleting the `study_buddy.db` file in the root directory. |
 
-### MCQ Test Generation
-1. Upload a PDF with course material
-2. Click "❓ Generate MCQ" in the sidebar
-3. Navigate to the **MCQ Test** tab
-4. Answer the questions and click "✅ Submit Answers"
-5. Review your score and explanations
+------------------------------------------------------------------------
 
-### Session Management
-- **New Session**: Clear chat and start fresh
-- **Export Chat**: Download conversation as JSON
+## Demo Video
 
-## Configuration
+Watch the demo of the application:
 
-### Changing the Model
-Edit `ollama_client.py`:
-```python
-def __init__(self, base_url: str = "http://localhost:11434", 
-             model: str = "llama2:13b"):  # Change model here
-```
+[![Demo Video](thumbnail.png)](https://youtu.be/h2hhqg-UJOc)
 
-### Adjusting Response Length
-Edit `prompts.py` to modify word limits:
-```python
-- Per response: 200-300 words max
-- Code snippets: 15-20 lines max
-```
+------------------------------------------------------------------------
 
-### Database Location
-Edit `database.py`:
-```python
-def __init__(self, db_path: str = "study_buddy.db"):  # Change path here
-```
-
-## File Structure
-
-### `study_buddy.py`
-Main application file with UI and orchestration logic
-
-### `ollama_client.py`
-Handles all communication with Ollama API:
-- Chat response generation
-- Tier classification
-- Summary generation
-- MCQ creation
-- Guardrails against complete solutions
-
-### `prompts.py`
-System prompts for different functions:
-- Socratic tutoring prompt
-- Summarization prompt
-- MCQ generation prompt
-
-### `pdf_processor.py`
-PDF text extraction and cleaning:
-- Extract text from uploaded PDFs
-- Clean and format extracted text
-- Extract metadata
-
-### `database.py`
-SQLite database operations:
-- Conversation persistence
-- Message history
-- Course material storage
-- Learning metrics tracking
-
-## Troubleshooting
-
-### "Cannot connect to Ollama"
-- Ensure Ollama is installed and running
-- Check `http://localhost:11434` in your browser
-- Restart Ollama service
-
-### "Request timed out"
-- The model is taking too long to respond
-- Try a smaller model (e.g., `mistral:7b`)
-- Reduce the PDF size or text length
-
-### "Error extracting text from PDF"
-- Ensure PDF is not password-protected
-- Try a different PDF
-- Some PDFs (scanned images) may not have extractable text
-
-### Database Errors
-- Delete `study_buddy.db` to reset the database
-- Check file permissions in the directory
-
-## Performance Tips
-
-### For Faster Responses
-1. Use smaller models: `mistral:7b` or `deepseek-r1:7b`
-2. Reduce context window (fewer conversation turns)
-3. Limit PDF size to < 100 pages
-
-### For Better Quality
-1. Use larger models: `llama2:13b` or `phi:14b`
-2. Increase temperature for more creative responses
-3. Provide more context in your questions
-
-## Academic Integrity
-
-StudyBuddy is designed to **guide learning**, not provide direct answers:
-- ✅ Provides scaffolding and frameworks
-- ✅ Asks clarifying questions
-- ✅ Offers process guidance
-- ❌ Does NOT give complete solutions
-- ❌ Does NOT write full essays
-- ❌ Does NOT provide direct homework answers
-
-Students should cite StudyBuddy usage in their work:
-```
-"Using StudyBuddy AI tutor (Session ID: xyz), November 21, 2025"
-```
-
-## Privacy & Data
-
-- **All data is local**: Nothing leaves your machine
-- **No external API calls**: Ollama runs entirely offline
-- **Database is local**: SQLite file in your directory
-- **Export anytime**: Download your conversation history
-
-## Advanced Configuration
-
-### Environment Variables
-Create a `.env` file:
-```bash
-OLLAMA_BASE_URL=http://localhost:11434
-MODEL_NAME=llama2:13b
-DATABASE_PATH=study_buddy.db
-MAX_CONTEXT_TOKENS=4096
-```
-
-### Custom System Prompts
-Edit `prompts.py` to customize the tutoring behavior
-
-### Adding More Features
-- Multi-language support
-- Voice input/output
-- Diagram generation
-- Collaborative study sessions
-
-## System Requirements
-
-- **OS**: Windows 10+, macOS 10.15+, or Linux
-- **RAM**: 8GB minimum (16GB recommended)
-- **Storage**: 10GB for models
-- **Python**: 3.8 or higher
-
-## Model Recommendations
-
-| Model | Size | Speed | Best For |
-|-------|------|-------|----------|
-| `llama2:13b` | 7.3GB | Medium | Balanced quality and speed |
-| `mistral:7b` | 4.1GB | Fast | Quick responses |
-| `deepseek-r1:7b` | 4.7GB | Medium | STEM subjects |
-| `phi:14b` | 9.1GB | Slow | Highest quality |
-
-## Known Limitations
-
-1. **PDF Processing**: Cannot extract text from scanned images
-2. **Context Window**: Limited to ~4000 tokens per conversation
-3. **MCQ Parsing**: May occasionally fail to parse complex questions
-4. **Offline Only**: Requires Ollama to be running locally
-
-## Contributing
-
-This is a research/educational project. Improvements welcome:
-- Better PDF parsing
-- Multi-modal support (images, diagrams)
-- Enhanced MCQ generation
-- Learning analytics dashboard
-
-## License
-
-Educational and research use only. Based on the StudyBuddy implementation guide.
-
-## Support
-
-For issues or questions:
-1. Check Ollama is running: `ollama list`
-2. Verify Python dependencies: `pip list`
-3. Check logs in terminal where Streamlit is running
-
-## Acknowledgments
-
-Based on the pedagogical framework from the StudyBuddy implementation guide, designed to support learning through Socratic questioning and scaffolding.
+Developed by Ashween R
