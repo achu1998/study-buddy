@@ -1,8 +1,48 @@
-# StudyBuddy - Local AI Learning Assistant
+<!-- portfolio:start -->
+<div align="center">
 
-**StudyBuddy** is a Streamlit-based AI tutor designed to guide students through course materials using Socratic questioning and scaffolding. By leveraging local LLMs, it ensures that all PDF processing, summarization, and quiz generation happen entirely on your machine.
+<img src="docs/images/banner.svg" alt="StudyBuddy" width="100%" />
+
+# StudyBuddy
+
+**Local AI tutor that teaches through Socratic questioning**
+
+![LLM Apps](https://img.shields.io/badge/LLM%20Apps-2025-6366f1?style=flat-square) [![Portfolio](https://img.shields.io/badge/Portfolio-ashween.space-0ea5e9?style=flat-square)](https://ashween.space/projects/studybuddy)
+
+</div>
+
+## About
+
+Turns course PDFs into guided study sessions with summaries, multiple-choice questions (MCQs) and tiered Socratic prompts. Runs fully offline with progress saved in SQLite.
+
+Developed StudyBuddy, a privacy-first AI tutor that guides students through course materials using a Socratic questioning approach.
+
+The system processes PDFs locally through Ollama, so student data never leaves the device, and provides automated summarisation and interactive multiple-choice question (MCQ) generation.
+
+Implemented tiered learning logic that encourages deep reasoning, backed by a local SQLite database that saves learning progress and session history.
+
+| | |
+|---|---|
+| **Project** | StudyBuddy: Local AI Learning Assistant |
+| **Project type** | Local LLM Application |
+
+## Demo
+
+<p align="center"><a href="https://www.youtube.com/watch?v=h2hhqg-UJOc"><img src="https://img.youtube.com/vi/h2hhqg-UJOc/hqdefault.jpg" alt="StudyBuddy demo" width="70%" /></a><br/><sub>▶ StudyBuddy demo (YouTube)</sub></p>
+
+## Tech stack
+
+`Python` · `Streamlit` · `Ollama` · `Llama 2` · `Mistral` · `DeepSeek-R1` · `SQLite`
+
+> Full write-up on the portfolio: **[ashween.space/projects/studybuddy](https://ashween.space/projects/studybuddy)**
+
+<!-- portfolio:end -->
 
 ---
+
+## Overview
+
+**StudyBuddy** is a Streamlit-based AI tutor designed to guide students through course materials using Socratic questioning and scaffolding. By leveraging local LLMs, it ensures that all PDF processing, summarization, and quiz generation happen entirely on your machine.
 
 ## 🚀 Key Features
 * **Socratic Tutoring:** Instead of giving direct answers, the AI guides you through complex concepts using tiered questioning.
